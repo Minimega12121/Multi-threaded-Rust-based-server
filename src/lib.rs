@@ -60,8 +60,8 @@ impl Drop for ThreadPool {
             if let Some(thread) = worker.thread.take() {
                 thread.join().unwrap();
             }
+        }
     }
-}
 }
 struct Worker {
     id: usize,
@@ -71,25 +71,23 @@ struct Worker {
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
         let thread = thread::spawn(move || loop {
-            let message = receiver
-                .lock()
-                .unwrap()
-                .recv()
-                .unwrap();
+            let message = receiver.lock().unwrap().recv().unwrap();
 
-            match message{
+            match message {
                 Message::NewJob(job) => {
                     println!("Worker {} got a job; executing.", id);
-                     job();
+                    job();
                 }
                 Message::Terminate => {
                     println!("Worker {} is shutting down.", id);
                     break;
                 }
             }
-            
         });
 
-        Worker { id, thread: Some(thread) }
+        Worker {
+            id,
+            thread: Some(thread),
+        }
     }
 }
